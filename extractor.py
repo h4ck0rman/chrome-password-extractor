@@ -6,7 +6,6 @@ import win32crypt
 from Crypto.Cipher import AES
 from os import environ
 
-
 # get the current user's Google Chrome password encryption key 
 def getEncryptionKey(username: str):
     # File path containing encryption keys for password encryption
@@ -21,7 +20,7 @@ def getEncryptionKey(username: str):
     decryptionKey = base64.b64decode(localState["os_crypt"]["encrypted_key"])
     decryptionKey = decryptionKey[5:]
 
-    # Return the encryption key as decrypted with current user's password
+    # Return the encryption key as decrypted with current user's dpapi keys
     return win32crypt.CryptUnprotectData(decryptionKey, None, None, None, 0)[1]
 
 def decrypt_password(password, key):
@@ -32,7 +31,6 @@ def decrypt_password(password, key):
     cipher = AES.new(key, AES.MODE_GCM, iv)
     # decrypt password
     return cipher.decrypt(password)[:-16].decode()
-
 
 # Get the username of a user
 USER = environ.get("USERNAME")
@@ -50,10 +48,12 @@ passwords = cursor.fetchall()
 
 # Print all records and passwords
 for index,login in enumerate(passwords):
+
     url = login[0]
     username = login[1]
     ciphertext= login[2]
-    print("Url: ",url)
-    print("Username: ",username)
-    print("Cipher Text: ",decrypt_password(ciphertext, key))
+
+    print("Url: ", url)
+    print("Username: ", username)
+    print("Password: ", decrypt_password(ciphertext, key))
     print("\n")
